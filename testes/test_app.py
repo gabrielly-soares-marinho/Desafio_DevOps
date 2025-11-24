@@ -40,5 +40,27 @@ class APITestCase(unittest.TestCase):
         response = self.client.get('/protected')
         self.assertEqual(response.status_code, 401)
 
+    def test_swagger_json_served(self):
+        """Testa se /swagger.json serve o spec do swagger"""
+        response = self.client.get('/swagger.json')
+        # swagger.json é um arquivo estático - deve retornar sucesso
+        self.assertEqual(response.status_code, 200)
+        try:
+            data = response.get_json()
+            # If file is JSON, we at least expect an 'openapi' or 'swagger' key
+            self.assertTrue('openapi' in data or 'swagger' in data)
+        except Exception:
+            # If not parsable as JSON, ensure it's returned as text
+            self.assertTrue(response.data and len(response.data) > 0)
+
+    def test_misspelled_swagger_redirects(self):
+        """Requests to the common misspelling '/swgger' should redirect to '/swagger/'"""
+        response = self.client.get('/swgger', follow_redirects=False)
+        # Expect a redirect to the correct swagger UI
+        self.assertIn(response.status_code, (301, 302))
+        location = response.headers.get('Location', '')
+        # The Location header should point to the correct path
+        self.assertTrue(location.endswith('/swagger/') or location.endswith('/swagger'))
+
 if __name__ == '__main__':
     unittest.main()

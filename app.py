@@ -74,6 +74,13 @@ def index():
 def docs():
     return redirect('/swagger/')
 
+
+# Accept common misspelling from client requests and redirect to the correct URL
+@app.route('/swgger', methods=['GET'])
+@app.route('/swgger/', methods=['GET'])
+def swgger_redirect():
+    return redirect('/swagger/')
+
 @app.route('/items', methods=['GET'])
 def get_items():
     items = [{"id": 1, "name": "item1"},
