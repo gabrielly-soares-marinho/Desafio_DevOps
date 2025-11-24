@@ -1,0 +1,40 @@
+name: Python Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Rodar testes
+        run: |
+          python -m unittest discover
+
+      - name: Construir pacote Python (opcional)
+        run: |
+          if [ -f setup.py ]; then python setup.py sdist bdist_wheel || true; fi
+
+      - name: Salvar artefatos da build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-python
+          path: dist/
